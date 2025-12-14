@@ -47,7 +47,7 @@ void *gc_malloc(size_t size) {
     block = request_space(size);
     global_base = block;
   } else {
-    block = find_free_block(&block, size);
+    block = find_free_block(&last, size);
     if (block == NULL) {
       block = request_space(size);
     }
