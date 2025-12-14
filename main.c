@@ -13,8 +13,6 @@ typedef struct header {
 } header_t;
 
 header_t *head = NULL;
-
-pthread_mutex_t global_malloc_lock;
 header_t *global_base = NULL;
 
 // get block if no free exist
@@ -40,25 +38,34 @@ header_t *find_free_block(header_t **last, size_t size) {
   }
   return current;
 }
+
 void *gc_malloc(size_t size) {
   header_t *block;
+  header_t *last = NULL;
   // set intial block
   if (!global_base) {
     block = request_space(size);
     global_base = block;
   } else {
-    find_free_block(&block, size);
+    block = find_free_block(&block, size);
+    if (block == NULL) {
+      block = request_space(size);
+    }
+    block->status = 1;
   }
-  return (block + 1);
+  return (void *)(block + 1);
 }
 
 int main(int argc, char *argv[]) {
+
   int *ptr = (int *)gc_malloc(sizeof(int) * 5);
 
   if (ptr == NULL) {
     printf("Allocation Failed");
   }
+  printf("Successfully allocated %zu bytes (5 ints) at data address %p\n",
 
+         sizeof(int) * 5, (void *)ptr);
   for (int i = 0; i < 5; i++)
     ptr[i] = i + 1;
 
